@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.bip.cleintdontdeletefuck.controller.MainController">
+   <children>
+      <GridPane layoutX="466.0" layoutY="14.0" prefHeight="30.0" prefWidth="348.0" AnchorPane.leftAnchor="466.0" AnchorPane.rightAnchor="466.0" AnchorPane.topAnchor="14.0">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Button mnemonicParsing="false" onAction="#tablesOpenButton" text="Словари" />
+            <Button mnemonicParsing="false" onAction="#finalLoadOpenButton" prefHeight="25.0" prefWidth="208.0" text="Финальная нагрузка" GridPane.columnIndex="1" GridPane.halignment="RIGHT" />
+         </children>
+      </GridPane>
+      <GridPane fx:id="tablesGridPane" layoutX="266.0" layoutY="55.0" visible="false" AnchorPane.leftAnchor="266.0" AnchorPane.rightAnchor="614.0" AnchorPane.topAnchor="55.0">
+        <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+         <children>
+            <Button mnemonicParsing="false" onAction="#groupsOpenButton" text="Группы" />
+            <Button mnemonicParsing="false" onAction="#teachersOpernButton" text="Учителя" GridPane.columnIndex="1" />
+            <Button mnemonicParsing="false" onAction="#subjectsOpenButton" text="Предметы" GridPane.columnIndex="2" />
+            <Button mnemonicParsing="false" onAction="#loadOpenButton" text="Нагрузка" GridPane.columnIndex="3" />
+         </children>
+      </GridPane>
+      <AnchorPane layoutX="113.0" layoutY="164.0" prefHeight="518.0" prefWidth="1130.0" AnchorPane.bottomAnchor="38.0" AnchorPane.leftAnchor="113.0" AnchorPane.rightAnchor="37.0" AnchorPane.topAnchor="164.0">
+         <children>
+            <ComboBox fx:id="comboBoxSelectTable" layoutX="137.0" layoutY="46.0" prefWidth="150.0" visible="false" AnchorPane.leftAnchor="137.0" AnchorPane.topAnchor="46.0" />
+            <AnchorPane fx:id="finalLoadProperties" layoutX="29.0" layoutY="102.0" visible="false" AnchorPane.bottomAnchor="23.0" AnchorPane.leftAnchor="29.0" AnchorPane.rightAnchor="736.0" AnchorPane.topAnchor="102.0">
+               <children>
+                  <CheckBox fx:id="withoutConsultations" layoutX="185.0" layoutY="368.0" mnemonicParsing="false" onAction="#changeFinalEdit" selected="true" text="С учётом консультации" AnchorPane.bottomAnchor="8.0" AnchorPane.leftAnchor="185.0" />
+                  <CheckBox fx:id="withoutCoursework" layoutY="333.0" mnemonicParsing="false" onAction="#changeFinalEdit" selected="true" text="С учётом курсовой" AnchorPane.bottomAnchor="4.0" AnchorPane.leftAnchor="2.0" />
+                  <CheckBox fx:id="withoutSecondSemester" layoutY="329.0" mnemonicParsing="false" onAction="#changeFinalEdit" prefHeight="25.0" prefWidth="180.0" selected="true" text="С учётом второго семестра" AnchorPane.bottomAnchor="39.0" AnchorPane.leftAnchor="0.0" />
+                  <CheckBox fx:id="withoutFirstSemester" layoutX="183.0" layoutY="333.0" mnemonicParsing="false" onAction="#changeFinalEdit" selected="true" text="С учётом первого семестра" AnchorPane.bottomAnchor="43.0" AnchorPane.leftAnchor="183.0" />
+                  <CheckBox fx:id="withoutExam" layoutX="185.0" layoutY="296.0" mnemonicParsing="false" onAction="#changeFinalEdit" selected="true" text="С учётом экзамена" AnchorPane.bottomAnchor="80.0" AnchorPane.leftAnchor="185.0" />
+                  <CheckBox fx:id="withoutDiploma" layoutX="2.0" layoutY="296.0" mnemonicParsing="false" onAction="#changeFinalEdit" selected="true" text="С учётом диплома" AnchorPane.bottomAnchor="80.0" AnchorPane.leftAnchor="2.0" />
+                  <ComboBox fx:id="teacherComboBox" layoutX="173.0" layoutY="172.0" prefWidth="150.0" AnchorPane.bottomAnchor="196.0" />
+                  <Button layoutX="14.0" layoutY="8.0" mnemonicParsing="false" onAction="#workWithExcel" text="Считать, занести в базу и записать в файл" AnchorPane.bottomAnchor="360.0" />
+               </children>
+            </AnchorPane>
+            <TableView fx:id="loadTable" prefHeight="480.0" prefWidth="706.0" visible="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="410.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="38.0">
+              <columns>
+                <TableColumn fx:id="teacherColumn" prefWidth="75.0" text="Учитель" />
+                <TableColumn fx:id="subjectColumn" prefWidth="75.0" text="Предмет" />
+                  <TableColumn fx:id="groupColumn" prefWidth="75.0" text="Группа" />
+                  <TableColumn fx:id="examColumn" prefWidth="75.0" text="Экзамен" />
+                  <TableColumn fx:id="courseworkColumn" prefWidth="75.0" text="Курсовые" />
+                  <TableColumn fx:id="consultationsColumn" prefWidth="75.0" text="Консультации" />
+                  <TableColumn fx:id="diplomaColumn" prefWidth="75.0" text="Диплом" />
+                  <TableColumn fx:id="semesterFirstColumn" prefWidth="75.0" text="Первый семестр" />
+                  <TableColumn fx:id="semesterSecondColumn" prefWidth="75.0" text="Второй семестр" />
+              </columns>
+            </TableView>
+         </children>
+      </AnchorPane>
+      <GridPane fx:id="smallTablesInside" layoutX="260.0" layoutY="129.0" prefHeight="25.0" prefWidth="386.0" visible="false" AnchorPane.leftAnchor="260.0" AnchorPane.rightAnchor="634.0">
+         <columnConstraints>
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+            <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" />
+         </columnConstraints>
+         <rowConstraints>
+            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
+         </rowConstraints>
+         <children>
+            <Button mnemonicParsing="false" onAction="#addButton" text="Создать" />
+            <Button mnemonicParsing="false" onAction="#editButton" text="Редактировать" GridPane.columnIndex="1" />
+            <Button mnemonicParsing="false" onAction="#deleteButton" prefHeight="25.0" prefWidth="66.0" text="Удалить" GridPane.columnIndex="2" />
+         </children>
+      </GridPane>
+   </children>
+</AnchorPane>
