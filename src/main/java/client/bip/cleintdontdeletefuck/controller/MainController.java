@@ -5,6 +5,7 @@ import client.bip.cleintdontdeletefuck.entity.GroupEntity;
 import client.bip.cleintdontdeletefuck.entity.LoadEntity;
 import client.bip.cleintdontdeletefuck.entity.SubjectEntity;
 import client.bip.cleintdontdeletefuck.entity.TeacherEntity;
+import client.bip.cleintdontdeletefuck.utils.AppConfig;
 import client.bip.cleintdontdeletefuck.utils.HTTPUtils;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -29,8 +30,8 @@ import static client.bip.cleintdontdeletefuck.ClientApplication.*;
 import static client.bip.cleintdontdeletefuck.controller.LogicController.*;
 
 public class MainController {
-    public static String fileDirectory = "D:\\bipApi\\cleintDONTDELETEFUCK\\src\\workload.xlsx";
-    public static String api = "http://localhost:28242/bipapi/";
+    public static String fileDirectory = AppConfig.XLSX_DEFAULT_PATH;
+    public static String api = AppConfig.API_BASE_URL;
     public static Gson gson = new Gson();
     public static HTTPUtils http = new HTTPUtils();
     public static String whatNeedToSum = "111111";
@@ -234,7 +235,7 @@ public class MainController {
         loadTable.setVisible(false);
         try {
             JsonObject baseTeachers = gson.fromJson(http.get(api, "teachers/all"), JsonObject.class);
-            JsonArray dataTeacher = baseTeachers.getAsJsonArray("data");
+            JsonArray dataTeacher = extractData(baseTeachers);
             for (int i = 0; i < dataTeacher.size(); i++) {
                 TeacherEntity teacher = gson.fromJson(dataTeacher.get(i).toString(), TeacherEntity.class);
                 toComboBox.add(teacher.getInitials());
@@ -284,6 +285,38 @@ public class MainController {
         initializeComboboxSelectTable();
     }
 
+    /**
+     * Extract the {@code "data"} array from a server response, tolerating error responses.
+     *
+     * <p>Success envelope: {@code {"message":..,"success":true,"data":[...]}}<br>
+     * Error envelope (e.g. HTTP 500): {@code {"timestamp":..,"status":500,"error":..,"path":..}} — no {@code "data"}.</p>
+     *
+     * <p>Never returns {@code null}, so callers can iterate without a {@link NullPointerException} —
+     * this is what stops a server-side error from crashing the whole app.</p>
+     *
+     * @param resp parsed JSON from {@link HTTPUtils}; may be {@code null} or an error envelope
+     * @return the {@code "data"} array, or an empty array when the server returned an error
+     */
+    private static JsonArray extractData(JsonObject resp) {
+        if (resp != null && resp.has("data") && resp.get("data").isJsonArray()) {
+            return resp.getAsJsonArray("data");
+        }
+        // The server returned an error envelope (no "data" array) — e.g. an HTTP 500 or a
+        // validation failure. Surface the most specific reason it gave us: the app's own
+        // BaseResponse "message" first, then Spring's default "error" text, then a generic
+        // fallback. Then return an empty list so no caller ever dereferences null.
+        String reason;
+        if (resp != null && resp.has("message") && !resp.get("message").isJsonNull()) {
+            reason = resp.get("message").getAsString();
+        } else if (resp != null && resp.has("error") && !resp.get("error").isJsonNull()) {
+            reason = resp.get("error").getAsString();
+        } else {
+            reason = "Сервер вернул ошибку. Пожалуйста, попробуйте позже!";
+        }
+        errorMessage("Не удалось загрузить данные: " + reason);
+        return new JsonArray();
+    }
+
     private void initializeComboboxSelectTable() {
         try {
             switch (whatTableIsSelected) {
@@ -292,7 +325,7 @@ public class MainController {
                     comboBoxSelectTable.getEditor().clear();
                     smallTablesInside.setVisible(true);
                     JsonObject base = gson.fromJson(http.get(api, "groups/all"), JsonObject.class);
-                    JsonArray dataArr = base.getAsJsonArray("data");
+                    JsonArray dataArr = extractData(base);
                     for (int i = 0; i < dataArr.size(); i++) {
                         GroupEntity subject = gson.fromJson(dataArr.get(i).toString(), GroupEntity.class);
                         groupsComboBox.add(subject);
@@ -304,7 +337,7 @@ public class MainController {
                 }
                 case "teachers" -> {
                     JsonObject base = gson.fromJson(http.get(api, "teachers/all"), JsonObject.class);
-                    JsonArray dataArr = base.getAsJsonArray("data");
+                    JsonArray dataArr = extractData(base);
                     for (int i = 0; i < dataArr.size(); i++) {
                         TeacherEntity teacher = gson.fromJson(dataArr.get(i).toString(), TeacherEntity.class);
                         toComboBox.add(teacher.getInitials());
@@ -316,7 +349,7 @@ public class MainController {
                 }
                 case "subjects" -> {
                     JsonObject base = gson.fromJson(http.get(api, "subjects/all"), JsonObject.class);
-                    JsonArray dataArr = base.getAsJsonArray("data");
+                    JsonArray dataArr = extractData(base);
                     for (int i = 0; i < dataArr.size(); i++) {
                         SubjectEntity subject = gson.fromJson(dataArr.get(i).toString(), SubjectEntity.class);
                         toComboBox.add(subject.getSubjectName());
@@ -360,7 +393,7 @@ public class MainController {
     private void initializeLoadTable() {
         try {
             JsonObject base = gson.fromJson(http.get(api, "loads/all"), JsonObject.class);
-            JsonArray dataArr = base.getAsJsonArray("data");
+            JsonArray dataArr = extractData(base);
             for (int i = 0; i < dataArr.size(); i++) {
                 LoadEntity subject = gson.fromJson(dataArr.get(i).toString(), LoadEntity.class);
                 loadEntityTableList.add(subject);

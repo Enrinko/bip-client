@@ -65,6 +65,13 @@ public class ClientApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
+        // Safety net: an exception escaping an @FXML handler would otherwise kill the JavaFX
+        // Application Thread and freeze the UI (exactly what the groups/all NPE did). Catch it
+        // here and show it, so a bad server response can never silently take down the app.
+        Thread.currentThread().setUncaughtExceptionHandler((thread, ex) -> {
+            ex.printStackTrace();
+            errorMessage("Непредвиденная ошибка: " + ex.getMessage());
+        });
         FXMLLoader fxmlLoader = new FXMLLoader(ClientApplication.class.getResource("main.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Hello!");
