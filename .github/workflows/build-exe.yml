@@ -1,0 +1,66 @@
+name: Build Windows exe
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-exe:
+    name: jpackage Windows app-image
+    runs-on: windows-latest
+    permissions:
+      # Needed only to attach the zip to a Release when triggered by a tag.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21" # bundles jpackage
+          cache: maven
+
+      - name: Build jar + stage jpackage input
+        shell: bash
+        run: |
+          ./mvnw -B -ntp -DskipTests clean package \
+            dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime
+          mkdir -p target/jpkg-input
+          cp target/deps/*.jar target/jpkg-input/
+          cp target/*.jar target/jpkg-input/
+
+      - name: Package app-image (.exe)
+        shell: bash
+        run: |
+          APP_JAR=$(basename "$(ls target/*.jar | head -1)")
+          echo "Main jar: $APP_JAR"
+          # Non-modular JavaFX app → main class is the plain Launcher and every jar
+          # (incl. JavaFX + its -win natives) goes on the classpath. See Launcher.java.
+          jpackage --type app-image --name bip-client \
+            --input target/jpkg-input \
+            --main-jar "$APP_JAR" \
+            --main-class client.bip.cleintdontdeletefuck.Launcher \
+            --app-version "1.0.${{ github.run_number }}" \
+            --dest target/dist \
+            --java-options -Dfile.encoding=UTF-8 \
+            --java-options --enable-native-access=ALL-UNNAMED
+
+      - name: Zip portable image
+        shell: pwsh
+        run: Compress-Archive -Path target/dist/bip-client/* -DestinationPath target/bip-client-windows.zip -Force
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bip-client-windows
+          path: target/bip-client-windows.zip
+          if-no-files-found: error
+
+      - name: Attach to release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: target/bip-client-windows.zip
