@@ -98,7 +98,7 @@ jobs:
 
       - name: Attach to GitHub Release (tag builds only)
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             target/*-windows-portable.zip
