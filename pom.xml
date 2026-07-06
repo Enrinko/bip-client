@@ -14,7 +14,7 @@
         <!-- Java 17 (LTS): lowest floor that runs on both JDK 25 (terminal) and the
              IDE's Corretto 18. Bump only if every launcher JDK is >= the new value. -->
         <maven.compiler.release>17</maven.compiler.release>
-        <javafx.version>21.0.5</javafx.version>
+        <javafx.version>26.0.1</javafx.version>
         <lombok.version>1.18.38</lombok.version>
         <junit.version>5.11.4</junit.version>
     </properties>
