@@ -18,7 +18,7 @@ jobs:
     name: Build & package (JDK 21)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -33,7 +33,7 @@ jobs:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - uses: gitleaks/gitleaks-action@v2
@@ -44,7 +44,7 @@ jobs:
     name: Dependency scan (trivy fs)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Trivy filesystem scan
         # Aqua retagged releases with a leading "v" and removed the bare tags, so keep the "v".
         uses: aquasecurity/trivy-action@v0.24.0
