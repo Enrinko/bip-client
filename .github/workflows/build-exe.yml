@@ -1,0 +1,105 @@
+name: Build Windows exe
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-exe:
+    name: jpackage Windows portable + installer
+    runs-on: windows-latest
+    permissions:
+      # Needed only to create/attach the Release on tag builds.
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21" # bundles jpackage
+          cache: maven
+
+      - name: Resolve version
+        id: ver
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # jpackage app-version must be numeric (N[.N[.N]]); fall back for non-tag runs.
+          case "$VERSION" in *[!0-9.]* | "") VERSION="1.0.${{ github.run_number }}" ;; esac
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $VERSION"
+
+      - name: Build jar + stage jpackage input
+        shell: bash
+        run: |
+          ./mvnw -B -ntp -DskipTests clean package \
+            dependency:copy-dependencies -DoutputDirectory=target/deps -DincludeScope=runtime
+          mkdir -p target/jpkg-input
+          cp target/deps/*.jar target/jpkg-input/
+          cp target/*.jar target/jpkg-input/
+
+      - name: Package portable app-image
+        shell: bash
+        run: |
+          APP_JAR=$(basename "$(ls target/*.jar | head -1)")
+          # Non-modular JavaFX app → plain Launcher main class + every jar on the classpath.
+          jpackage --type app-image --name bip-client \
+            --input target/jpkg-input \
+            --main-jar "$APP_JAR" \
+            --main-class client.bip.cleintdontdeletefuck.Launcher \
+            --app-version "${{ steps.ver.outputs.version }}" \
+            --dest target/dist \
+            --java-options -Dfile.encoding=UTF-8 \
+            --java-options --enable-native-access=ALL-UNNAMED
+
+      - name: Zip portable image
+        shell: pwsh
+        run: >-
+          Compress-Archive -Path target/dist/bip-client/*
+          -DestinationPath "target/bip-client-${{ steps.ver.outputs.version }}-windows-portable.zip" -Force
+
+      - name: Set up WiX 3 (for the installer)
+        shell: pwsh
+        run: |
+          choco install wixtoolset --no-progress -y
+          $bin = Get-ChildItem "C:\Program Files (x86)" -Recurse -Filter light.exe -ErrorAction SilentlyContinue |
+                 Select-Object -First 1 -ExpandProperty DirectoryName
+          if (-not $bin) { Write-Error "WiX (light.exe) not found after install"; exit 1 }
+          Add-Content -Path $env:GITHUB_PATH -Value $bin
+          Write-Host "WiX bin on PATH: $bin"
+
+      - name: Package installer (.exe)
+        shell: bash
+        run: |
+          APP_JAR=$(basename "$(ls target/*.jar | head -1)")
+          jpackage --type exe --name bip-client \
+            --input target/jpkg-input \
+            --main-jar "$APP_JAR" \
+            --main-class client.bip.cleintdontdeletefuck.Launcher \
+            --app-version "${{ steps.ver.outputs.version }}" \
+            --dest target/installer \
+            --win-dir-chooser --win-menu --win-shortcut \
+            --java-options -Dfile.encoding=UTF-8 \
+            --java-options --enable-native-access=ALL-UNNAMED
+          ls -la target/installer
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bip-client-windows
+          path: |
+            target/*-windows-portable.zip
+            target/installer/*.exe
+          if-no-files-found: error
+
+      - name: Attach to GitHub Release (tag builds only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/*-windows-portable.zip
+            target/installer/*.exe

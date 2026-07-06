@@ -1,0 +1,19 @@
+# Normalize line endings: LF in the repo, native on checkout.
+* text=auto
+
+# Windows-native scripts stay CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# Unix scripts / wrapper stay LF.
+mvnw text eol=lf
+*.sh text eol=lf
+
+# Treat these as binary (no EOL munging, no diff noise).
+*.xlsx binary
+*.xls binary
+*.jar binary
+*.exe binary
+*.msi binary
+*.png binary
+*.ico binary
